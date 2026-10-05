@@ -1,0 +1,10 @@
+.gradle/
+.kotlin/
+.git/
+app/
+build/
+gradle/
+*.apk
+*.tflite
+*.bat
+gradlew
