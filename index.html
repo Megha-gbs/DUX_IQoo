@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DUX — Global Pedestrian & Offline Street Navigation</title>
+  <meta name="description" content="DUX is an intelligent pedestrian navigation app featuring 100% offline-capable street maps, real-time camera AI landmark verification, and voice guidance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090A0F;
+      --card-bg: rgba(20, 24, 34, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #1A73E8;
+      --accent: #FFD200;
+      --success: #10B981;
+      --danger: #EF4444;
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Subtle background grid pattern */
+    .bg-pattern {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(26, 115, 232, 0.18) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navbar */
+    header {
+      padding: 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 210, 0, 0.4);
+    }
+
+    .brand-text {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 4px 16px rgba(255, 210, 0, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(255, 210, 0, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      transform: translateY(-2px);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 72px 0 48px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(26, 115, 232, 0.15);
+      border: 1px solid rgba(26, 115, 232, 0.35);
+      color: #60A5FA;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #FFFFFF 30%, #9CA3AF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Map Showcase Section */
+    .showcase {
+      margin: 48px 0 72px;
+    }
+
+    .map-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    .interactive-canvas-container {
+      width: 100%;
+      height: 440px;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      background: #14161C;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .map-overlay-badge {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 24, 34, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Features Grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 72px;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 210, 0, 0.3);
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Screenshots Section */
+    .screenshots-title {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .screenshots-title h2 {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+
+    .screenshot-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .screenshot-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .screenshot-caption {
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 36px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 34px; }
+      .interactive-canvas-container { height: 340px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  <div class="container">
+    <header>
+      <a href="#" class="brand">
+        <div class="brand-icon">D</div>
+        <span class="brand-text">DUX</span>
+      </a>
+      <div class="nav-links">
+        <a href="https://github.com/Megha-gbs/DUX_IQoo" target="_blank" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="https://github.com/Megha-gbs/DUX_IQoo/raw/main/DUX_Latest.apk" class="btn btn-primary">
+          ⬇ Download APK
+        </a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="badge">
+        <span>⚡</span> Android Compose • 100% Offline Street Mapping
+      </div>
+      <h1>Global Pedestrian Navigation & Offline Street Mapping</h1>
+      <p>
+        Reliable gate-to-gate pedestrian routing powered by on-device computer vision, 
+        compass dead-reckoning, and real-time offline street maps.
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/Megha-gbs/DUX_IQoo/raw/main/DUX_Latest.apk" class="btn btn-primary" style="padding: 14px 28px; font-size: 16px;">
+          ⬇ Download DUX App (v1.0 APK)
+        </a>
+        <a href="https://github.com/Megha-gbs/DUX_IQoo" target="_blank" class="btn btn-secondary" style="padding: 14px 24px; font-size: 16px;">
+          View Source on GitHub
+        </a>
+      </div>
+    </section>
+
+    <!-- Interactive Map Canvas Showcase -->
+    <section class="showcase">
+      <div class="map-card">
+        <div class="map-header">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 800;">Interactive Street Map Preview</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">Simulation of native Compose Canvas rendering (Organic Maps style)</p>
+          </div>
+          <div class="live-status">
+            <div class="dot"></div>
+            <span>GPS Locked & Offline Ready</span>
+          </div>
+        </div>
+        <div class="interactive-canvas-container">
+          <canvas id="streetCanvas"></canvas>
+          <div class="map-overlay-badge">
+            <span style="color: var(--success);">●</span> Offline street map – limited area
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Features -->
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <div class="feature-title">100% Offline Street Map</div>
+        <div class="feature-desc">
+          Clean Organic Maps / CoMaps style rendering roads, pedestrian footpaths with tactile tiles, buildings, and parks directly via hardware-accelerated Canvas. Never blank.
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👁️</div>
+        <div class="feature-title">Reality Engine Computer Vision</div>
+        <div class="feature-desc">
+          On-device camera analysis validates physical entrance signboards, stainless turnstiles, and warns against dangerous vehicle entrance ramps.
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔊</div>
+        <div class="feature-title">Voice Guidance on Open</div>
+        <div class="feature-desc">
+          Instant natural speech greeting: <em>"Hi, where do you want to go?"</em> with concise, single-line turn guidance and destination arrival confirmations.
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshots Gallery -->
+    <section>
+      <div class="screenshots-title">
+        <h2>Application Screenshots</h2>
+        <p style="color: var(--text-muted); font-size: 14px;">Real screenshots from device execution</p>
+      </div>
+      <div class="screenshots-grid">
+        <div class="screenshot-card">
+          <img src="screen1_open_app.png" alt="Open App Screen" onerror="this.src='1_app_opened.png'">
+          <div class="screenshot-caption">1. App Open & Destination Prompt</div>
+        </div>
+        <div class="screenshot-card">
+          <img src="screen2_mention_destination.png" alt="Destination Search" onerror="this.src='2_search_destination.png'">
+          <div class="screenshot-caption">2. Verified Entrances & Photo Match</div>
+        </div>
+        <div class="screenshot-card">
+          <img src="phone_screen.png" alt="Live Navigation HUD" onerror="this.src='live_map_black.png'">
+          <div class="screenshot-caption">3. Clean Street Navigation HUD</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>DUX • Built with Jetpack Compose & Kotlin • Deployed to GitHub & Vercel</p>
+    </footer>
+  </div>
+
+  <script>
+    // Interactive Canvas Simulation of the Native Compose Map
+    const canvas = document.getElementById('streetCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = canvas.parentElement.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.parentElement.clientHeight * window.devicePixelRatio;
+      draw();
+    }
+
+    let pulse = 0;
+    let heading = 45;
+
+    function draw() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Clear background
+      ctx.fillStyle = '#14161C';
+      ctx.fillRect(0, 0, w, h);
+
+      // Green Campus Lawn (Top Right)
+      ctx.fillStyle = '#16251E';
+      ctx.strokeStyle = '#223A2F';
+      ctx.lineWidth = 2;
+      roundRect(ctx, w * 0.52, h * 0.06, w * 0.44, h * 0.32, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      // Buildings
+      ctx.fillStyle = '#1B1E26';
+      ctx.strokeStyle = '#2E3340';
+      roundRect(ctx, w * 0.04, h * 0.06, w * 0.36, h * 0.28, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      roundRect(ctx, w * 0.04, h * 0.38, w * 0.32, h * 0.16, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      roundRect(ctx, w * 0.04, h * 0.58, w * 0.34, h * 0.36, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      // Main Road
+      const roadLeft = w * 0.62;
+      const roadWidth = w * 0.32;
+      ctx.fillStyle = '#22252E';
+      ctx.fillRect(roadLeft, 0, roadWidth, h);
+
+      ctx.strokeStyle = '#2D323E';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(roadLeft, 0); ctx.lineTo(roadLeft, h);
+      ctx.moveTo(roadLeft + roadWidth, 0); ctx.lineTo(roadLeft + roadWidth, h);
+      ctx.stroke();
+
+      // Road divider dashes
+      ctx.strokeStyle = '#3B4150';
+      ctx.setLineDash([14, 10]);
+      ctx.beginPath();
+      ctx.moveTo(roadLeft + roadWidth / 2, 0); ctx.lineTo(roadLeft + roadWidth / 2, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Pedestrian Footpath
+      const walkLeft = w * 0.42;
+      const walkWidth = w * 0.16;
+      ctx.fillStyle = '#2B303C';
+      ctx.fillRect(walkLeft, 0, walkWidth, h);
+
+      ctx.strokeStyle = '#383F4E';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(walkLeft, 0); ctx.lineTo(walkLeft, h);
+      ctx.moveTo(walkLeft + walkWidth, 0); ctx.lineTo(walkLeft + walkWidth, h);
+      ctx.stroke();
+
+      // Tactile Paving Yellow Center Guide
+      ctx.strokeStyle = 'rgba(255, 210, 0, 0.5)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.moveTo(walkLeft + walkWidth / 2, 0); ctx.lineTo(walkLeft + walkWidth / 2, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Labels
+      ctx.fillStyle = '#A6AFBF';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('MAIN COMPLEX', w * 0.08, h * 0.12);
+      ctx.fillText('SECURITY CABIN', w * 0.08, h * 0.42);
+      ctx.fillText('AUDITORIUM', w * 0.08, h * 0.66);
+
+      ctx.fillStyle = '#34D399';
+      ctx.fillText('CENTRAL GARDEN', w * 0.56, h * 0.12);
+
+      // Route Path (User -> Destination)
+      const userPos = { x: walkLeft + walkWidth / 2, y: h * 0.76 };
+      const destPos = { x: walkLeft + walkWidth / 2, y: h * 0.22 };
+
+      ctx.strokeStyle = 'rgba(26, 115, 232, 0.3)';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(userPos.x, userPos.y);
+      ctx.lineTo(userPos.x, (userPos.y + destPos.y) / 2);
+      ctx.lineTo(destPos.x, destPos.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#1A73E8';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(userPos.x, userPos.y);
+      ctx.lineTo(userPos.x, (userPos.y + destPos.y) / 2);
+      ctx.lineTo(destPos.x, destPos.y);
+      ctx.stroke();
+
+      // Destination Pin (Green)
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
+      ctx.beginPath(); ctx.arc(destPos.x, destPos.y, 22, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#10B981';
+      ctx.beginPath(); ctx.arc(destPos.x, destPos.y, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3; ctx.stroke();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.arc(destPos.x, destPos.y, 5, 0, Math.PI * 2); ctx.fill();
+
+      // Destination Label
+      ctx.fillStyle = 'rgba(20, 24, 34, 0.95)';
+      roundRect(ctx, destPos.x - 70, destPos.y - 42, 140, 26, 6);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Gate 2 Pedestrian Access', destPos.x, destPos.y - 25);
+      ctx.textAlign = 'start';
+
+      // User Puck (Blue) with Heading Cone
+      pulse = (pulse + 0.02) % 1;
+      const pulseRadius = 14 + pulse * 24;
+      ctx.fillStyle = `rgba(26, 115, 232, ${(1 - pulse) * 0.4})`;
+      ctx.beginPath(); ctx.arc(userPos.x, userPos.y, pulseRadius, 0, Math.PI * 2); ctx.fill();
+
+      // Heading Cone
+      heading = (heading + 0.3) % 360;
+      const rad = (heading - 90) * Math.PI / 180;
+      ctx.fillStyle = 'rgba(26, 115, 232, 0.45)';
+      ctx.beginPath();
+      ctx.moveTo(userPos.x, userPos.y);
+      ctx.lineTo(userPos.x + 36 * Math.cos(rad - 0.5), userPos.y + 36 * Math.sin(rad - 0.5));
+      ctx.lineTo(userPos.x + 42 * Math.cos(rad), userPos.y + 42 * Math.sin(rad));
+      ctx.lineTo(userPos.x + 36 * Math.cos(rad + 0.5), userPos.y + 36 * Math.sin(rad + 0.5));
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.arc(userPos.x, userPos.y, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1A73E8';
+      ctx.beginPath(); ctx.arc(userPos.x, userPos.y, 8, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('You', userPos.x, userPos.y + 24);
+      ctx.textAlign = 'start';
+
+      requestAnimationFrame(draw);
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('load', resize);
+    resize();
+  </script>
+</body>
+</html>
